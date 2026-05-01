@@ -10,6 +10,7 @@ Hands-on learning project for **Apache Kafka** and **RabbitMQ** with Spring Boot
 |--------|------|------|
 | [`kafka-learn`](./kafka-learn) | 8081 | Apache Kafka (spring-kafka + kafka-streams) |
 | [`rabbit-learn`](./rabbit-learn) | 8082 | RabbitMQ (spring-amqp) |
+| [`practical`](./practical) | 8083 | Production patterns (Kafka + RabbitMQ + JPA) |
 
 ## Quick Start
 
@@ -20,6 +21,7 @@ docker compose up -d
 # 2. Run apps (in separate terminals)
 ./mvnw -pl kafka-learn spring-boot:run
 ./mvnw -pl rabbit-learn spring-boot:run
+./mvnw -pl practical spring-boot:run
 
 # 3. Trigger examples via Postman or curl
 curl -X POST "http://localhost:8081/kafka/basics/send?message=hello"
@@ -46,6 +48,8 @@ Import `docs/kafka-rabbit-learn.postman_collection.json` into Postman to trigger
 **Kafka:** basics, partitioning, consumer groups, manual ack, dead-letter topics, JSON serde, Kafka Streams, transactions, idempotency, retry with backoff, observability
 
 **RabbitMQ:** basics, work queues, direct/topic/fanout/headers exchanges, RPC, dead-letter queues, manual ack, retry with backoff, publisher confirms, idempotency, observability
+
+**Practical (production patterns):** delayed messages (DLX+TTL), priority queues, compacted topics, batch consuming, transactional outbox, multi-tenant routing
 
 ## Requirements
 

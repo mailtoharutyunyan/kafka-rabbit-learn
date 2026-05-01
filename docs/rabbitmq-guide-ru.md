@@ -207,6 +207,49 @@ Micrometer-метрики + propagation correlationId через headers.
 | `CorrelationData` | Publisher confirms |
 | `AmqpRejectAndDontRequeueException` | Направить в DLQ |
 
+## Продвинутые паттерны (модуль `practical/`)
+
+### Delayed Messages (отложенные сообщения)
+
+```
+Producer ──→ Wait Queue (TTL=5000ms, no consumers)
+                   │
+              TTL expires
+                   │
+                   ▼
+        Dead Letter Exchange ──→ Process Queue ──→ Consumer
+```
+
+Трюк: очередь без подписчиков + `x-message-ttl` (или per-message expiration) + DLX.
+Когда TTL истекает, сообщение перемещается в DLX → рабочую очередь.
+
+### Priority Queues (приоритетные очереди)
+
+```
+Queue (x-max-priority=10):
+
+  message (priority=10) ─┐
+  message (priority=1)  ─┼──→ Consumer видит: priority=10, 5, 5, 2, 1
+  message (priority=5)  ─┤
+  message (priority=2)  ─┤
+  message (priority=5)  ─┘
+```
+
+Очередь с аргументом `x-max-priority`. Сообщения с высоким приоритетом доставляются первыми.
+
+### Multi-Tenant (мультитенантность)
+
+```
+Topic Exchange "learn.multitenant"
+
+  routing "tenant-a.order.created" → Queue tenant-a (pattern: "tenant-a.#")
+  routing "tenant-b.order.created" → Queue tenant-b (pattern: "tenant-b.#")
+  routing "tenant-a.payment"       → Queue tenant-a + Queue ALL
+  routing "*.*"                    → Queue ALL (audit: pattern "#")
+```
+
+Каждый арендатор получает только свои события. Аудит-очередь видит всё.
+
 ## Management UI
 
 http://localhost:15672 (guest/guest)

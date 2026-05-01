@@ -172,3 +172,65 @@ Micrometer-метрики `messages.sent`/`messages.received` + propagation `cor
 | `DefaultErrorHandler` | Обработка ошибок + DLT |
 | `KafkaTransactionManager` | Транзакции |
 | `StreamsBuilder` | Kafka Streams DSL |
+
+## Продвинутые паттерны (модуль `practical/`)
+
+### Compacted Topics (уплотнение)
+
+```
+Topic (cleanup.policy=compact):
+
+До компакции:  [user-1:v1] [user-2:v1] [user-1:v2] [user-2:v2] [user-1:v3]
+После:         [user-2:v2] [user-1:v3]
+                    ↑ только последние значения на ключ
+```
+
+Kafka хранит только ПОСЛЕДНЕЕ значение для каждого ключа. Используется для:
+- Справочников (user profiles, configs)
+- KTable / state store
+- Отправка `null` = tombstone (удаление ключа)
+
+### Batch Consuming (пакетная обработка)
+
+```
+Kafka Broker:  [msg1][msg2][msg3]...[msg50]
+                         │
+               maxPollRecords=50
+                         │
+                         ▼
+Consumer:  List<ConsumerRecord> (до 50 за poll)
+```
+
+Повышает throughput за счёт обработки пакетами вместо одного сообщения за раз.
+
+### Transactional Outbox (паттерн "Исходящий ящик")
+
+```
+┌─────────────────────────────────┐
+│ @Transactional                  │
+│                                 │
+│  1. Save Order to DB            │
+│  2. Save OutboxEvent to DB      │ ← одна транзакция
+│                                 │
+└─────────────────────────────────┘
+         │
+    Poller (каждые 2 сек)
+         │
+         ▼
+   Publish to Kafka → Mark as published
+```
+
+Гарантирует: если бизнес-данные сохранены — событие БУДЕТ опубликовано. Без 2PC.
+
+### Multi-Tenant (мультитенантность)
+
+```
+Kafka:   learn.mt.tenant-a  →  Consumer A
+         learn.mt.tenant-b  →  Consumer B
+
+Rabbit:  Exchange → routing "tenant-a.#" → Queue A
+                  → routing "tenant-b.#" → Queue B
+                  → routing "#"           → Audit (ВСЕ)
+```
+
+Изоляция данных арендаторов через отдельные топики/очереди.

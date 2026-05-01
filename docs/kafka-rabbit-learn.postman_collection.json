@@ -6,7 +6,8 @@
   },
   "variable": [
     { "key": "kafka_url", "value": "http://localhost:8081" },
-    { "key": "rabbit_url", "value": "http://localhost:8082" }
+    { "key": "rabbit_url", "value": "http://localhost:8082" },
+    { "key": "practical_url", "value": "http://localhost:8083" }
   ],
   "item": [
     {
@@ -327,6 +328,99 @@
             "method": "GET",
             "url": "{{rabbit_url}}/actuator/metrics/learn.rabbit.messages.sent",
             "description": "View message send counter"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Practical",
+      "item": [
+        {
+          "name": "1. Delayed - Send with delay",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/delayed/send?message=reminder&delayMs=5000",
+            "description": "Message delivered after 5 seconds via DLX+TTL"
+          }
+        },
+        {
+          "name": "2. Priority - Demo",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/priority/demo",
+            "description": "Sends 5 messages with priorities 1-10, highest consumed first"
+          }
+        },
+        {
+          "name": "2. Priority - Custom",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/priority/send?message=urgent-task&priority=10",
+            "description": "Send single message with specific priority"
+          }
+        },
+        {
+          "name": "3. Compaction - Demo",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/compaction/demo",
+            "description": "Multiple updates per key + tombstone delete"
+          }
+        },
+        {
+          "name": "3. Compaction - Upsert",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/compaction/upsert?userId=user-42&profile={\"name\":\"Dave\"}",
+            "description": "Upsert a user profile (latest value wins after compaction)"
+          }
+        },
+        {
+          "name": "3. Compaction - Delete (tombstone)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{practical_url}}/practical/compaction/delete?userId=user-42",
+            "description": "Send null value = tombstone, key removed during compaction"
+          }
+        },
+        {
+          "name": "4. Batch - Send 100 messages",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/batch/send?count=100",
+            "description": "Consumer receives records in batches of up to 50"
+          }
+        },
+        {
+          "name": "5. Outbox - Create Order",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/outbox/create-order?customer=alice&amount=299.99",
+            "description": "Saves to DB + outbox table, poller publishes to Kafka within 2s"
+          }
+        },
+        {
+          "name": "6. Multi-Tenant - Demo",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/multitenant/demo",
+            "description": "Events routed to tenant-specific topics/queues + audit queue"
+          }
+        },
+        {
+          "name": "6. Multi-Tenant - Kafka",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/multitenant/kafka?tenantId=tenant-a&event=user-signup",
+            "description": "Send to tenant-specific Kafka topic"
+          }
+        },
+        {
+          "name": "6. Multi-Tenant - Rabbit",
+          "request": {
+            "method": "POST",
+            "url": "{{practical_url}}/practical/multitenant/rabbit?tenantId=tenant-b&eventType=order.placed&payload=order-999",
+            "description": "Send to tenant-specific RabbitMQ queue via routing key"
           }
         }
       ]

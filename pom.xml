@@ -20,6 +20,7 @@
     <modules>
         <module>kafka-learn</module>
         <module>rabbit-learn</module>
+        <module>practical</module>
     </modules>
 
     <properties>
