@@ -1,0 +1,335 @@
+{
+  "info": {
+    "name": "kafka-rabbit-learn",
+    "description": "All endpoints for Kafka and RabbitMQ learning examples",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "kafka_url", "value": "http://localhost:8081" },
+    { "key": "rabbit_url", "value": "http://localhost:8082" }
+  ],
+  "item": [
+    {
+      "name": "Kafka",
+      "item": [
+        {
+          "name": "1. Basics - Send",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/basics/send?message=hello kafka",
+            "description": "Simple string message producer/consumer"
+          }
+        },
+        {
+          "name": "2. Partitioning - Send with key",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/partitioning/send?key=user-1&message=order-placed",
+            "description": "Same key → same partition → ordering guarantee"
+          }
+        },
+        {
+          "name": "3. Consumer Groups - Send batch",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/consumergroups/send?count=10",
+            "description": "shared-group splits work, audit-group sees everything"
+          }
+        },
+        {
+          "name": "4. Manual Ack - Commit",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/manualack/send?message=commit-me",
+            "description": "Message will be ack'd"
+          }
+        },
+        {
+          "name": "4. Manual Ack - Skip ack",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/manualack/send?message=skip-ack",
+            "description": "Message NOT ack'd - redelivered on restart"
+          }
+        },
+        {
+          "name": "5. DLT - Normal message",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/dlt/send?message=normal-ok",
+            "description": "Processed successfully"
+          }
+        },
+        {
+          "name": "5. DLT - Poison pill",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/dlt/send?message=poison-42",
+            "description": "Fails → retries → dead letter topic"
+          }
+        },
+        {
+          "name": "6. JSON Serde - Send OrderEvent",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/jsonserde/send?customer=alice&amount=199.99",
+            "description": "JSON POJO (OrderEvent) serialization"
+          }
+        },
+        {
+          "name": "7. Streams - Send text",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/streams/send?line=kafka streams is awesome kafka",
+            "description": "Word count stream processing"
+          }
+        },
+        {
+          "name": "8. Transactions - Commit",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/transactions/send?rollback=false",
+            "description": "Atomic send of 2 messages (committed)"
+          }
+        },
+        {
+          "name": "8. Transactions - Rollback",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/transactions/send?rollback=true",
+            "description": "Atomic send aborted - consumer sees nothing"
+          }
+        },
+        {
+          "name": "9. Idempotency - Send (first)",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/idempotency/send?id=order-123&payload=create",
+            "description": "First delivery - processed"
+          }
+        },
+        {
+          "name": "9. Idempotency - Send (duplicate)",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/idempotency/send?id=order-123&payload=retry",
+            "description": "Same id - DUPLICATE skipped"
+          }
+        },
+        {
+          "name": "10. Retry Backoff - Trigger retries",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/retrybackoff/send?message=fail-then-succeed",
+            "description": "Fails 3 times with exponential backoff, then succeeds"
+          }
+        },
+        {
+          "name": "11. Observability - Send with correlation",
+          "request": {
+            "method": "POST",
+            "url": "{{kafka_url}}/kafka/observability/send?message=trace me",
+            "description": "correlationId in headers + Micrometer counters"
+          }
+        },
+        {
+          "name": "11. Observability - Check metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{kafka_url}}/actuator/metrics/learn.kafka.messages.sent",
+            "description": "View message send counter"
+          }
+        }
+      ]
+    },
+    {
+      "name": "RabbitMQ",
+      "item": [
+        {
+          "name": "1. Basics - Send",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/basics/send?message=hello rabbit",
+            "description": "Simple queue with default exchange"
+          }
+        },
+        {
+          "name": "2. Work Queues - Send tasks",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/workqueues/send?count=5",
+            "description": "Competing consumers (round-robin)"
+          }
+        },
+        {
+          "name": "3. Direct Exchange - Info",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/direct/send?key=info&message=system started",
+            "description": "Routes to info queue"
+          }
+        },
+        {
+          "name": "3. Direct Exchange - Error",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/direct/send?key=error&message=disk full",
+            "description": "Routes to error queue"
+          }
+        },
+        {
+          "name": "4. Topic Exchange - order.created",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/topic/send?key=order.created&message=order 42",
+            "description": "Matches pattern 'order.*' → orders queue"
+          }
+        },
+        {
+          "name": "4. Topic Exchange - user.created",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/topic/send?key=user.created&message=new user",
+            "description": "Matches pattern 'user.created' → userCreated queue"
+          }
+        },
+        {
+          "name": "4. Topic Exchange - user.deleted (no match)",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/topic/send?key=user.deleted&message=gone",
+            "description": "No matching binding - message dropped"
+          }
+        },
+        {
+          "name": "5. Fanout Exchange - Broadcast",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/fanout/send?message=breaking news",
+            "description": "Both queue A and B receive the message"
+          }
+        },
+        {
+          "name": "6. Headers Exchange - PDF report",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/headers/send?format=pdf&type=report&body=annual-report",
+            "description": "Matches ALL headers → pdf queue"
+          }
+        },
+        {
+          "name": "6. Headers Exchange - PNG image",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/headers/send?format=png&type=photo&body=screenshot",
+            "description": "Matches format=png → image queue"
+          }
+        },
+        {
+          "name": "7. RPC - Call",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/rpc/call?request=hello world",
+            "description": "Synchronous request/reply - returns HELLO WORLD"
+          }
+        },
+        {
+          "name": "8. DLQ - Normal",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/dlq/send?message=normal-ok",
+            "description": "Processed successfully"
+          }
+        },
+        {
+          "name": "8. DLQ - Poison pill",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/dlq/send?message=poison-99",
+            "description": "Rejected → routed to dead letter queue"
+          }
+        },
+        {
+          "name": "9. Manual Ack - ack",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/manualack/send?message=ack-me",
+            "description": "Message acknowledged"
+          }
+        },
+        {
+          "name": "9. Manual Ack - nack requeue",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/manualack/send?message=nack-requeue",
+            "description": "Nack with requeue - message goes back to queue"
+          }
+        },
+        {
+          "name": "9. Manual Ack - reject",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/manualack/send?message=reject",
+            "description": "Message rejected and dropped"
+          }
+        },
+        {
+          "name": "10. Retry Backoff - Trigger",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/retrybackoff/send?message=fail-then-succeed",
+            "description": "Retries with exponential backoff"
+          }
+        },
+        {
+          "name": "11. Transactions - Publisher confirm",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/transactions/send?message=confirm-me&toMissingQueue=false",
+            "description": "Normal send with publisher confirm ACK"
+          }
+        },
+        {
+          "name": "11. Transactions - Missing queue (returned)",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/transactions/send?message=unroutable&toMissingQueue=true",
+            "description": "Mandatory message to non-existent queue → RETURNED callback"
+          }
+        },
+        {
+          "name": "12. Idempotency - Send (first)",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/idempotency/send?id=order-456&payload=create",
+            "description": "First delivery - processed"
+          }
+        },
+        {
+          "name": "12. Idempotency - Send (duplicate)",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/idempotency/send?id=order-456&payload=retry",
+            "description": "Same id - DUPLICATE skipped"
+          }
+        },
+        {
+          "name": "13. Observability - Send",
+          "request": {
+            "method": "POST",
+            "url": "{{rabbit_url}}/rabbit/observability/send?message=trace me",
+            "description": "correlationId propagation + Micrometer counters"
+          }
+        },
+        {
+          "name": "13. Observability - Check metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{rabbit_url}}/actuator/metrics/learn.rabbit.messages.sent",
+            "description": "View message send counter"
+          }
+        }
+      ]
+    }
+  ]
+}
