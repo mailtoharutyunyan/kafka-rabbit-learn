@@ -250,6 +250,27 @@ Topic Exchange "learn.multitenant"
 
 Каждый арендатор получает только свои события. Аудит-очередь видит всё.
 
+## Сценарии из реального мира (модуль `real-world/`)
+
+### Quorum Queues (кворумные очереди)
+
+```
+Quorum Queue (RAFT-replicated):
+  - x-queue-type: quorum
+  - delivery-limit: 5 (после 5 неудачных доставок — отброс)
+  - Реплицируется между узлами → HA без split-brain
+```
+
+Замена устаревших mirrored queues. Безопаснее и предсказуемее при сбоях.
+
+### Rate Limiting (ограничение скорости)
+
+Потребитель с искусственной задержкой между сообщениями:
+- 20 сообщений отправлены мгновенно
+- Consumer обрабатывает max 3/сек (задержка 333ms между сообщениями)
+
+В продакшне используйте Guava RateLimiter или Resilience4j.
+
 ## Management UI
 
 http://localhost:15672 (guest/guest)

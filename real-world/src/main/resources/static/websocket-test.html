@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket + Kafka Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+        h2 { color: #0f0; }
+        #messages { border: 1px solid #333; padding: 10px; min-height: 200px; max-height: 400px; overflow-y: auto; }
+        .msg { padding: 4px 0; border-bottom: 1px solid #333; }
+        .status { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h2>WebSocket + Kafka Real-Time Demo</h2>
+    <p class="status" id="status">Connecting...</p>
+    <h3>Messages from /topic/notifications:</h3>
+    <div id="messages"></div>
+
+    <script>
+        const sock = new SockJS('/ws');
+        const stomp = Stomp.over(sock);
+        stomp.debug = null;
+
+        stomp.connect({}, function() {
+            document.getElementById('status').textContent = 'Connected! Listening for notifications...';
+            document.getElementById('status').style.color = '#0f0';
+
+            stomp.subscribe('/topic/notifications', function(msg) {
+                const div = document.createElement('div');
+                div.className = 'msg';
+                div.textContent = new Date().toLocaleTimeString() + ' → ' + msg.body;
+                document.getElementById('messages').prepend(div);
+            });
+        }, function(error) {
+            document.getElementById('status').textContent = 'Disconnected: ' + error;
+            document.getElementById('status').style.color = '#f00';
+        });
+    </script>
+
+    <p style="margin-top:20px; color:#888;">
+        Send a message: <code>curl -X POST "http://localhost:8084/realworld/websocket/send?message=hello"</code>
+    </p>
+</body>
+</html>

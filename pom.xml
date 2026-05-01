@@ -21,6 +21,7 @@
         <module>kafka-learn</module>
         <module>rabbit-learn</module>
         <module>practical</module>
+        <module>real-world</module>
     </modules>
 
     <properties>

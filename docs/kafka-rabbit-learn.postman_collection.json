@@ -7,7 +7,8 @@
   "variable": [
     { "key": "kafka_url", "value": "http://localhost:8081" },
     { "key": "rabbit_url", "value": "http://localhost:8082" },
-    { "key": "practical_url", "value": "http://localhost:8083" }
+    { "key": "practical_url", "value": "http://localhost:8083" },
+    { "key": "realworld_url", "value": "http://localhost:8084" }
   ],
   "item": [
     {
@@ -421,6 +422,107 @@
             "method": "POST",
             "url": "{{practical_url}}/practical/multitenant/rabbit?tenantId=tenant-b&eventType=order.placed&payload=order-999",
             "description": "Send to tenant-specific RabbitMQ queue via routing key"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Real-World",
+      "item": [
+        {
+          "name": "1. WebSocket - Send notification",
+          "request": {
+            "method": "POST",
+            "url": "{{realworld_url}}/realworld/websocket/send?message=New order received!",
+            "description": "Kafka → WebSocket push. Open http://localhost:8084/websocket-test.html to see live"
+          }
+        },
+        {
+          "name": "2. Saga - Success",
+          "request": {
+            "method": "POST",
+            "url": "{{realworld_url}}/realworld/saga/create-order?amount=50&shouldFail=false",
+            "description": "Order → Payment COMPLETED → Order CONFIRMED"
+          }
+        },
+        {
+          "name": "2. Saga - Failure + Compensation",
+          "request": {
+            "method": "POST",
+            "url": "{{realworld_url}}/realworld/saga/create-order?amount=999&shouldFail=true",
+            "description": "Order → Payment FAILED → Order COMPENSATED (cancelled)"
+          }
+        },
+        {
+          "name": "3. Consumer Lag - Info",
+          "request": {
+            "method": "GET",
+            "url": "{{realworld_url}}/realworld/consumer-lag/info",
+            "description": "Lag monitored every 5s via AdminClient + Micrometer gauge"
+          }
+        },
+        {
+          "name": "3. Consumer Lag - Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{realworld_url}}/actuator/metrics/kafka.consumer.lag",
+            "description": "Current lag value from Micrometer"
+          }
+        },
+        {
+          "name": "4. Rate Limit - Burst",
+          "request": {
+            "method": "POST",
+            "url": "{{realworld_url}}/realworld/ratelimit/burst?count=20",
+            "description": "20 messages sent instantly, consumer processes max 3/sec"
+          }
+        },
+        {
+          "name": "5. Quorum Queue - Send",
+          "request": {
+            "method": "POST",
+            "url": "{{realworld_url}}/realworld/quorum/send?message=reliable-msg",
+            "description": "RAFT-replicated queue with delivery-limit=5"
+          }
+        },
+        {
+          "name": "5. Quorum Queue - Trigger retries",
+          "request": {
+            "method": "POST",
+            "url": "{{realworld_url}}/realworld/quorum/send?message=fail-test",
+            "description": "Fails processing → redelivered up to 5 times"
+          }
+        },
+        {
+          "name": "6. Kafka Connect - JDBC Source example",
+          "request": {
+            "method": "GET",
+            "url": "{{realworld_url}}/realworld/kafka-connect/jdbc-source-example",
+            "description": "Example connector config: DB → Kafka"
+          }
+        },
+        {
+          "name": "6. Kafka Connect - Elasticsearch Sink example",
+          "request": {
+            "method": "GET",
+            "url": "{{realworld_url}}/realworld/kafka-connect/elasticsearch-sink-example",
+            "description": "Example connector config: Kafka → Elasticsearch"
+          }
+        },
+        {
+          "name": "7. Spring Cloud Stream - Kafka config",
+          "request": {
+            "method": "GET",
+            "url": "{{realworld_url}}/realworld/spring-cloud-stream/kafka-config-example",
+            "description": "How to use Spring Cloud Stream with Kafka binder"
+          }
+        },
+        {
+          "name": "7. Spring Cloud Stream - Rabbit config",
+          "request": {
+            "method": "GET",
+            "url": "{{realworld_url}}/realworld/spring-cloud-stream/rabbit-config-example",
+            "description": "Same code with RabbitMQ binder (just swap dependency)"
           }
         }
       ]

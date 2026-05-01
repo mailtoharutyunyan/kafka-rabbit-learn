@@ -234,3 +234,46 @@ Rabbit:  Exchange → routing "tenant-a.#" → Queue A
 ```
 
 Изоляция данных арендаторов через отдельные топики/очереди.
+
+## Сценарии из реального мира (модуль `real-world/`)
+
+### WebSocket + Kafka
+
+```
+REST API → KafkaProducer → Topic → KafkaConsumer → SimpMessagingTemplate → WebSocket → Browser
+```
+
+Real-time push уведомлений в браузер через Kafka как backbone.
+Открой http://localhost:8084/websocket-test.html и отправь curl — увидишь мгновенно.
+
+### Saga (Хореография)
+
+```
+OrderService → "order.created" → Kafka → PaymentService
+                                              │
+                                 (success) → "payment.completed" → Kafka → OrderService: CONFIRM
+                                 (failure) → "payment.failed"    → Kafka → OrderService: COMPENSATE
+```
+
+Распределённая транзакция без координатора. Каждый сервис реагирует на события и публикует свои.
+
+### Consumer Lag Monitoring
+
+```
+AdminClient.listConsumerGroupOffsets() → committed offset
+AdminClient.listOffsets(latest)        → end offset
+lag = end - committed                  → Micrometer gauge → /actuator/metrics
+```
+
+Мониторинг отставания потребителя. Алерт при lag > 100.
+
+### Kafka Connect
+
+Внешний процесс для интеграции данных без кода:
+- **Source**: БД → Kafka (JDBC connector, Debezium CDC)
+- **Sink**: Kafka → Elasticsearch / S3 / БД
+
+### Spring Cloud Stream
+
+Абстракция над Kafka и RabbitMQ — один и тот же код работает с обоими брокерами.
+Смена бинда = смена зависимости в pom.xml.
